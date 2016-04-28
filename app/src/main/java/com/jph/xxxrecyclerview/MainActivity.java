@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         final XXXRecyclerView recyclerView = (XXXRecyclerView) findViewById(R.id.recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,
                 false));
-        mMyAdapter = new MyAdapter(generateData(0, 5));
+        mMyAdapter = new MyAdapter(generateData(0, 20));
         recyclerView.setAdapter(mMyAdapter);
         recyclerView.setOnLoadMoreListener(new XXXRecyclerView.OnLoadMoreListener() {
             @Override
