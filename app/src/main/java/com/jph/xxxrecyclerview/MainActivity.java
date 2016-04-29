@@ -3,6 +3,7 @@ package com.jph.xxxrecyclerview;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
+import android.view.View;
 
 import com.xxxrecylcerview.XXXRecyclerView;
 
@@ -25,6 +26,9 @@ public class MainActivity extends AppCompatActivity {
         final XXXRecyclerView recyclerView = (XXXRecyclerView) findViewById(R.id.recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,
                 false));
+//        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+//        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        recyclerView.setLoadMoreView(View.inflate(this, R.layout.layout_load_more, null));
         mMyAdapter = new MyAdapter(generateData(0, 20));
         recyclerView.setAdapter(mMyAdapter);
         recyclerView.setOnLoadMoreListener(new XXXRecyclerView.OnLoadMoreListener() {

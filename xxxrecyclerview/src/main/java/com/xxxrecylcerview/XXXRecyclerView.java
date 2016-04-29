@@ -2,13 +2,16 @@ package com.xxxrecylcerview;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 /**
+ * 支持loadmore，addHeaderViw，addFooterView的RecyclerView
  * Created by jph on 2016/4/21.
  */
 public class XXXRecyclerView extends RecyclerView implements HatShoe {
@@ -16,8 +19,7 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
 
     private boolean mLoadable = true;
     private boolean mIsLoading = false;
-    private int mVisibleItemCount = 0;
-    private int mTotalItemCount = 0;
+    private LAYOUT_MANAGER_TYPE layoutManagerType;//LayoutManager类型
 
     private int mLastTouchY;
     private boolean mTouchThis = false;//是否触摸
@@ -40,9 +42,30 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
     }
 
     @Override
+    public void setLayoutManager(LayoutManager layout) {
+        super.setLayoutManager(layout);
+        if (layout != null && layoutManagerType == null) {
+            if (layout instanceof GridLayoutManager) {
+                layoutManagerType = LAYOUT_MANAGER_TYPE.GRID;
+            } else if (layout instanceof LinearLayoutManager) {
+                layoutManagerType = LAYOUT_MANAGER_TYPE.LINEAR;
+            } else if (layout instanceof StaggeredGridLayoutManager) {
+                layoutManagerType = LAYOUT_MANAGER_TYPE.STAGGERED_GRID;
+            } else {
+                throw new RuntimeException("Unsupported LayoutManager used." +
+                        " Valid ones are LinearLayoutManager, " +
+                        "GridLayoutManager and StaggeredGridLayoutManager");
+            }
+        }
+    }
+
+    @Override
     public void setAdapter(Adapter adapter) {
         super.setAdapter(adapter);
         if (adapter instanceof XXXAdapter) {
+            if (mLoadMoreView == null) {
+                mLoadMoreView = createDefaultLoadMoreView();
+            }
             setLoadMoreView((XXXAdapter) adapter);
             if (mScrollListener != null) {
                 removeOnScrollListener(mScrollListener);
@@ -52,21 +75,49 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
         }
     }
 
+    public void setLoadMoreView(View loadMoreView) {
+        mLoadMoreView = loadMoreView;
+    }
+
     private void setLoadMoreView(XXXAdapter adapter) {
-        mLoadMoreView = createLoadMoreView();
         adapter.removeAllFooterView();
         adapter.addFooterView(mLoadMoreView);
         setLoadMoreShow(false);
+        setFooterSpanSizeLookup(getLayoutManager(), adapter);
     }
 
-    private View createLoadMoreView() {
+    private View createDefaultLoadMoreView() {
         return View.inflate(getContext(), R.layout.layout_loadmore, null);
+    }
+
+    /**
+     * 设置footer跨行
+     *
+     * @param layout
+     * @param adapter
+     */
+    private void setFooterSpanSizeLookup(LayoutManager layout, final Adapter adapter) {
+        if (layout == null || !(layout instanceof GridLayoutManager)) {
+            return;
+        }
+        final GridLayoutManager gridLayoutManager = (GridLayoutManager) layout;
+        final GridLayoutManager.SpanSizeLookup oldSpanSizeLookup = gridLayoutManager.getSpanSizeLookup();
+
+        //grid时设置loadmore跨行
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                if (position == 0 || position == adapter.getItemCount() - 1) {
+                    return gridLayoutManager.getSpanCount();
+                }
+                return oldSpanSizeLookup != null ? oldSpanSizeLookup.getSpanSize(position) : 1;
+            }
+        });
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent e) {
-        //TODO 暂时只支持LinearLayoutManager
-        if (getLayoutManager() == null || !(getLayoutManager() instanceof LinearLayoutManager)) {
+        if (getLayoutManager() == null) {
             return super.onInterceptTouchEvent(e);
         }
 
@@ -79,16 +130,16 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
                 final int y = (int) (e.getY() + 0.5f);
                 final int dy = y - mLastTouchY;
 
-                LinearLayoutManager ll = (LinearLayoutManager) getLayoutManager();
-                mVisibleItemCount = ll.getChildCount();
-                mTotalItemCount = ll.getItemCount();
-                int firstPosition = ll.findFirstVisibleItemPosition();
+                LayoutManager layoutManager = getLayoutManager();
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int firstPosition = getFirstPosition();
                 if (!mIsLoading && dy < 0) {
-                    if ((mTotalItemCount - mVisibleItemCount) <=
+                    if ((totalItemCount - visibleItemCount) <=
                             firstPosition) {
                         startLoadMore();
                         mIsLoading = true;
-                    } else if (!loadMoreIsShow() && (mTotalItemCount - mVisibleItemCount) <=
+                    } else if (!loadMoreIsShow() && (totalItemCount - visibleItemCount) <=
                             firstPosition + 1) {
                         startLoadMore();
                         mIsLoading = true;
@@ -175,7 +226,7 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
         setLoadMoreShow(false);
     }
 
-    public void setLoadMoreShow(boolean show) {
+    private void setLoadMoreShow(boolean show) {
         if (mLoadMoreView != null) {
             mLoadMoreView.setVisibility(show ? VISIBLE : GONE);
         }
@@ -187,6 +238,36 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
 
     public void setLoadable(boolean loadable) {
         mLoadable = loadable;
+    }
+
+    private int findMin(int[] lastPositions) {
+        int min = Integer.MAX_VALUE;
+        for (int value : lastPositions) {
+            if (value != RecyclerView.NO_POSITION && value < min)
+                min = value;
+        }
+        return min;
+    }
+
+    private int getFirstPosition() {
+        LayoutManager layoutManager = getLayoutManager();
+        int firstPosition = 0;
+
+        switch (layoutManagerType) {
+            case LINEAR:
+                firstPosition = ((LinearLayoutManager) layoutManager).findFirstVisibleItemPosition();
+                break;
+            case GRID:
+                firstPosition = ((GridLayoutManager) layoutManager).findFirstVisibleItemPosition();
+                break;
+            case STAGGERED_GRID:
+                StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) layoutManager;
+                int[] firstPositions = new int[staggeredGridLayoutManager.getSpanCount()];
+                staggeredGridLayoutManager.findFirstVisibleItemPositions(firstPositions);
+                firstPosition = findMin(firstPositions);
+                break;
+        }
+        return firstPosition;
     }
 
     /**
@@ -207,22 +288,20 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
     }
 
     private class MScrollListener extends OnScrollListener {
+
         @Override
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             super.onScrolled(recyclerView, dx, dy);
-            //TODO 暂时只支持LinearLayoutManager
-            if (!(getLayoutManager() instanceof LinearLayoutManager)) {
-                return;
-            }
             if (dy <= 0) {
                 return;
             }
-            LinearLayoutManager ll = (LinearLayoutManager) getLayoutManager();
-            mVisibleItemCount = ll.getChildCount();
-            mTotalItemCount = ll.getItemCount();
-            int firstPosition = ll.findFirstVisibleItemPosition();
 
-            if (!loadMoreIsShow() && !mIsLoading && (mTotalItemCount - mVisibleItemCount) <=
+            LayoutManager layoutManager = getLayoutManager();
+            int visibleItemCount = layoutManager.getChildCount();
+            int totalItemCount = layoutManager.getItemCount();
+            int firstPosition = getFirstPosition();
+
+            if (!loadMoreIsShow() && !mIsLoading && (totalItemCount - visibleItemCount) <=
                     (mTouchThis ? firstPosition : firstPosition + 1)) {
                 //手指离开，自动滑动firstPosition+1,预先加载
                 startLoadMore();
@@ -236,5 +315,11 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
      */
     public interface OnLoadMoreListener {
         void onLoadMore();
+    }
+
+    public enum LAYOUT_MANAGER_TYPE {
+        LINEAR,
+        GRID,
+        STAGGERED_GRID
     }
 }
