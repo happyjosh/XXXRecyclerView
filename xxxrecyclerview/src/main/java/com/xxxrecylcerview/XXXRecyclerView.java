@@ -68,13 +68,12 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
             boolean isVertically = isVertically();
             ((XXXAdapter) adapter).setVerticallyContainer(isVertically);
             if (!isVertically) {
-                //不是纵向的RecyclerView，无加载更多等处理逻辑
                 return;
             }
 
             if (mLoadMoreView == null) {
                 mLoadMoreView = createDefaultLoadMoreView();
-            } else {
+            } else if (mLoadMoreView.getParent() != null) {
                 ((ViewGroup) mLoadMoreView.getParent()).removeView(mLoadMoreView);
             }
             setLoadMoreView((XXXAdapter) adapter);

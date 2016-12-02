@@ -44,7 +44,6 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
             return ITEM_TYPE_FOOTER;
         }
         if (isAllowHasHeader()) {
-            //需要去掉header的position
             position--;
         }
         return getRealItemViewType(position);
@@ -76,7 +75,6 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
             return;
         }
         if (isAllowHasHeader()) {
-            //需要去掉header的position
             position--;
         }
         onRealBindViewHolder((VH) holder, position);
