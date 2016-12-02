@@ -4,9 +4,9 @@
 ```java
 compile 'com.jph:xxxrecyclerview:1.1.0'
 ```
-
+使用的Adapter需要继承自XXXAdapter
 ```java
-public class MyAdapter extends BaseRecyclerAdapter<MyAdapter.ViewHolder, String>...
+public class MyAdapter extends XXXAdapter<MyAdapter.ViewHolder>...
 ```
 
 ```java
