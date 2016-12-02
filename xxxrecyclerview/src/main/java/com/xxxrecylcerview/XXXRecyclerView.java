@@ -1,6 +1,7 @@
 package com.xxxrecylcerview;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -9,6 +10,7 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
 /**
  * 支持loadmore，addHeaderViw，addFooterView的RecyclerView
@@ -60,11 +62,20 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
     }
 
     @Override
-    public void setAdapter(Adapter adapter) {
+    public void setAdapter(@NonNull Adapter adapter) {
         super.setAdapter(adapter);
         if (adapter instanceof XXXAdapter) {
+            boolean isVertically = isVertically();
+            ((XXXAdapter) adapter).setVerticallyContainer(isVertically);
+            if (!isVertically) {
+                //不是纵向的RecyclerView，无加载更多等处理逻辑
+                return;
+            }
+
             if (mLoadMoreView == null) {
                 mLoadMoreView = createDefaultLoadMoreView();
+            } else {
+                ((ViewGroup) mLoadMoreView.getParent()).removeView(mLoadMoreView);
             }
             setLoadMoreView((XXXAdapter) adapter);
             if (mScrollListener != null) {
@@ -277,6 +288,26 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
      */
     private boolean loadMoreIsShow() {
         return mLoadMoreView.getVisibility() == VISIBLE;
+    }
+
+    /**
+     * 是否是纵向的RecyclerView
+     *
+     * @return
+     */
+    private boolean isVertically() {
+        switch (layoutManagerType) {
+            case GRID:
+                return ((GridLayoutManager) getLayoutManager()).getOrientation() ==
+                        GridLayoutManager.VERTICAL;
+            case LINEAR:
+                return ((LinearLayoutManager) getLayoutManager()).getOrientation() ==
+                        LinearLayoutManager.VERTICAL;
+            case STAGGERED_GRID:
+                return ((StaggeredGridLayoutManager) getLayoutManager()).getOrientation() ==
+                        StaggeredGridLayoutManager.VERTICAL;
+        }
+        return false;
     }
 
     public OnLoadMoreListener getOnLoadMoreListener() {
