@@ -20,22 +20,32 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
     private ViewGroup mLayoutHeader;//header容器
     private ViewGroup mLayoutFooter;//footer容器
 
+    private boolean mIsVerticallyContainer = false;//是否是纵向的容器
+
     @Override
     public final int getItemCount() {
         int itemCount = getRealItemCount();
 
         //将header和footer添加到item总数
-        itemCount++;
-        itemCount++;
+        if (isAllowHasHeader()) {
+            itemCount++;
+        }
+        if (isAllowHasFooter()) {
+            itemCount++;
+        }
         return itemCount;
     }
 
     @Override
     public final int getItemViewType(int position) {
-        if (position == 0) {
+        if (isAllowHasHeader() && position == 0) {
             return ITEM_TYPE_HEADER;
-        } else if (position == getItemCount() - 1) {
+        } else if (isAllowHasFooter() && position == getItemCount() - 1) {
             return ITEM_TYPE_FOOTER;
+        }
+        if (isAllowHasHeader()) {
+            //需要去掉header的position
+            position--;
         }
         return getRealItemViewType(position);
     }
@@ -60,11 +70,15 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
 
     @Override
     public final void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if (position == 0 || position == getItemCount() - 1) {
+        if ((isAllowHasHeader() && position == 0) ||
+                (isAllowHasFooter() && position == getItemCount() - 1)) {
             //header和footer不执行实际复写的onRealBindViewHolder
             return;
         }
-        position--;
+        if (isAllowHasHeader()) {
+            //需要去掉header的position
+            position--;
+        }
         onRealBindViewHolder((VH) holder, position);
     }
 
@@ -128,5 +142,27 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
         if (mLayoutFooter != null) {
             mLayoutFooter.removeAllViews();
         }
+    }
+
+    public void setVerticallyContainer(boolean verticallyContainer) {
+        mIsVerticallyContainer = verticallyContainer;
+    }
+
+    /**
+     * 是否允许有header
+     *
+     * @return
+     */
+    private boolean isAllowHasHeader() {
+        return mIsVerticallyContainer;
+    }
+
+    /**
+     * 是否允许有footer
+     *
+     * @return
+     */
+    private boolean isAllowHasFooter() {
+        return mIsVerticallyContainer;
     }
 }
