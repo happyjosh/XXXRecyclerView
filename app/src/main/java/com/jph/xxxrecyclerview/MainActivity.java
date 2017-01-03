@@ -1,6 +1,8 @@
 package com.jph.xxxrecyclerview;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
@@ -38,6 +40,22 @@ public class MainActivity extends AppCompatActivity {
                 recyclerView.stopLoadMore();
             }
         });
+
+
+        final SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) findViewById(R.id.layout_refresh);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMyAdapter.setList(generateData(0, 20));
+                        refreshLayout.setRefreshing(false);
+                    }
+                }, 2000);
+            }
+        });
+
     }
 
     private List<String> generateData(int beginIndex, int count) {
