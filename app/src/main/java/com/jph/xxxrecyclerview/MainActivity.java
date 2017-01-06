@@ -5,6 +5,8 @@ import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 
 import com.xxxrecylcerview.XXXRecyclerView;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
                 recyclerView.stopLoadMore();
             }
         });
+//        recyclerView.addHeaderView(View.inflate(this, R.layout.layout_load_more, null));
 
 
         final SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) findViewById(R.id.layout_refresh);
@@ -53,6 +56,24 @@ public class MainActivity extends AppCompatActivity {
                         refreshLayout.setRefreshing(false);
                     }
                 }, 2000);
+            }
+        });
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                Log.i("---", "onScrollStateChanged newState:" + newState);
+                int firstPosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+                Log.i("---", "onScrolled First Position" + ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                Log.i("---", "onScrolled dy:" + dy);
+                int firstPosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+                Log.i("---", "onScrolled First Position" + ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
             }
         });
 

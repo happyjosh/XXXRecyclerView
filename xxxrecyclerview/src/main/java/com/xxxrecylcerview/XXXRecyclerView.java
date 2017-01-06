@@ -309,6 +309,23 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
         return false;
     }
 
+    @Override
+    public int computeVerticalScrollOffset() {
+        if (getAdapter() == null) {
+            return super.computeVerticalScrollOffset();
+        }
+        if (!(getAdapter() instanceof XXXAdapter)) {
+            return super.computeVerticalScrollOffset();
+        }
+        XXXAdapter xxxAdapter = (XXXAdapter) getAdapter();
+        if (xxxAdapter.getHeaderContainer() != null &&
+                xxxAdapter.getHeaderContainer().getChildCount() == 0 && getFirstPosition() == 1) {
+            //兼容support23.3.0+的SwipeRefreshLayout下拉无效的问题
+            return 0;
+        }
+        return super.computeVerticalScrollOffset();
+    }
+
     public OnLoadMoreListener getOnLoadMoreListener() {
         return mOnLoadMoreListener;
     }

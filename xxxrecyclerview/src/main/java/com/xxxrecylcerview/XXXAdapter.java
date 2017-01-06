@@ -98,6 +98,10 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
         return container;
     }
 
+    ViewGroup getHeaderContainer() {
+        return mLayoutHeader;
+    }
+
     @Override
     public void addHeaderView(View v) {
         if (mLayoutHeader == null) {
