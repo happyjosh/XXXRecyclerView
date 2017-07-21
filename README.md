@@ -2,7 +2,7 @@
 
 ### 使用方式：
 ```java
-compile 'com.jph:xxxrecyclerview:1.1.2’
+compile 'com.jph:xxxrecyclerview:1.1.2‘
 ```
 使用的Adapter需要继承自XXXAdapter
 ```java
