@@ -310,20 +310,36 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
     }
 
     @Override
-    public int computeVerticalScrollOffset() {
+    public boolean canScrollVertically(int direction) {
+        //解决当header不显示时，各种下拉刷新控件无效的问题
         if (getAdapter() == null) {
-            return super.computeVerticalScrollOffset();
+            return super.canScrollVertically(direction);
         }
-        if (!(getAdapter() instanceof XXXAdapter)) {
-            return super.computeVerticalScrollOffset();
+
+        if (!XXXAdapter.class.isInstance(getAdapter())) {
+            return super.canScrollVertically(direction);
         }
+
         XXXAdapter xxxAdapter = (XXXAdapter) getAdapter();
-        if (xxxAdapter.getHeaderContainer() != null &&
-                xxxAdapter.getHeaderContainer().getChildCount() == 0 && getFirstPosition() == 1) {
-            //兼容support23.3.0+的SwipeRefreshLayout下拉无效的问题
-            return 0;
+        if (xxxAdapter.getHeaderContainer() == null ||
+                xxxAdapter.getHeaderContainer().getChildCount() != 0) {
+            return super.canScrollVertically(direction);
         }
-        return super.computeVerticalScrollOffset();
+
+        if (direction < 0) {
+            if (getAdapter().getItemCount() <= 1) {
+                return false;
+            }
+            View fistItemV = getLayoutManager().findViewByPosition(1);
+
+            if (fistItemV == null) {
+                //排除header外的第一个item被回收了
+                return true;
+            }
+
+            return fistItemV.getTop() < 0;
+        }
+        return super.canScrollVertically(direction);
     }
 
     public OnLoadMoreListener getOnLoadMoreListener() {
