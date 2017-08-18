@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLoadMoreView(View.inflate(this, R.layout.layout_load_more, null));
         mMyAdapter = new MyAdapter(generateData(0, 20));
         recyclerView.setAdapter(mMyAdapter);
+        recyclerView.addHeaderView(View.inflate(this, R.layout.header, null));
         recyclerView.setOnLoadMoreListener(new XXXRecyclerView.OnLoadMoreListener() {
             @Override
             public void onLoadMore() {

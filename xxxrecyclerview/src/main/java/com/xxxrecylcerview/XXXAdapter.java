@@ -1,17 +1,14 @@
 package com.xxxrecylcerview;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 /**
  * 处理header和footer的Adapter
  * Created by jph on 2016/4/20.
  */
 public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
-        extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements HatShoe {
+        extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     //以两种不同的itemType来作为header和footer
     private static int ITEM_TYPE_HEADER = -101;
@@ -21,6 +18,14 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
     private ViewGroup mLayoutFooter;//footer容器
 
     private boolean mIsVerticallyContainer = false;//是否是纵向的容器
+
+    void setLayoutHeader(ViewGroup layoutHeader) {
+        mLayoutHeader = layoutHeader;
+    }
+
+    void setLayoutFooter(ViewGroup layoutFooter) {
+        mLayoutFooter = layoutFooter;
+    }
 
     @Override
     public final int getItemCount() {
@@ -52,15 +57,9 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
     @Override
     public final RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == ITEM_TYPE_HEADER) {
-            if (mLayoutHeader == null) {
-                mLayoutHeader = createContainer(parent.getContext());
-            }
             return new RecyclerView.ViewHolder(mLayoutHeader) {
             };
         } else if (viewType == ITEM_TYPE_FOOTER) {
-            if (mLayoutFooter == null) {
-                mLayoutFooter = createContainer(parent.getContext());
-            }
             return new RecyclerView.ViewHolder(mLayoutFooter) {
             };
         }
@@ -90,61 +89,11 @@ public abstract class XXXAdapter<VH extends RecyclerView.ViewHolder>
 
     public abstract void onRealBindViewHolder(VH holder, int position);
 
-    private ViewGroup createContainer(Context context) {
-        LinearLayout container = new LinearLayout(context);
-        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-        container.setOrientation(LinearLayout.VERTICAL);
-        return container;
-    }
 
     ViewGroup getHeaderContainer() {
         return mLayoutHeader;
     }
 
-    @Override
-    public void addHeaderView(View v) {
-        if (mLayoutHeader == null) {
-            mLayoutHeader = createContainer(v.getContext());
-        }
-        mLayoutHeader.addView(v);
-    }
-
-    @Override
-    public void addFooterView(View v) {
-        if (mLayoutFooter == null) {
-            mLayoutFooter = createContainer(v.getContext());
-        }
-        mLayoutFooter.addView(v);
-    }
-
-    @Override
-    public void removeHeaderView(View v) {
-        if (mLayoutHeader != null) {
-            mLayoutHeader.removeView(v);
-        }
-    }
-
-    @Override
-    public void removeFooterView(View v) {
-        if (mLayoutFooter != null) {
-            mLayoutFooter.removeView(v);
-        }
-    }
-
-    @Override
-    public void removeAllHeaderView() {
-        if (mLayoutHeader != null) {
-            mLayoutHeader.removeAllViews();
-        }
-    }
-
-    @Override
-    public void removeAllFooterView() {
-        if (mLayoutFooter != null) {
-            mLayoutFooter.removeAllViews();
-        }
-    }
 
     public void setVerticallyContainer(boolean verticallyContainer) {
         mIsVerticallyContainer = verticallyContainer;

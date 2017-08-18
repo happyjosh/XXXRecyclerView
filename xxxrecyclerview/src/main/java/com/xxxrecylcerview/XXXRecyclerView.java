@@ -11,6 +11,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 /**
  * 支持loadmore，addHeaderViw，addFooterView的RecyclerView
@@ -31,16 +32,27 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
 
     private View mLoadMoreView;//加载更多view
 
+    private ViewGroup mLayoutHeader;//header容器
+    private ViewGroup mLayoutFooter;//footer容器
+
     public XXXRecyclerView(Context context) {
         super(context);
+        init();
     }
 
     public XXXRecyclerView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        init();
     }
 
     public XXXRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        init();
+    }
+
+    private void init() {
+        mLayoutHeader = createContainer();
+        mLayoutFooter = createContainer();
     }
 
     @Override
@@ -66,7 +78,10 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
         super.setAdapter(adapter);
         if (adapter instanceof XXXAdapter) {
             boolean isVertically = isVertically();
-            ((XXXAdapter) adapter).setVerticallyContainer(isVertically);
+            XXXAdapter xxxAdapter = (XXXAdapter) adapter;
+            xxxAdapter.setLayoutHeader(mLayoutHeader);
+            xxxAdapter.setLayoutFooter(mLayoutFooter);
+            xxxAdapter.setVerticallyContainer(isVertically);
             if (!isVertically) {
                 return;
             }
@@ -76,7 +91,7 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
             } else if (mLoadMoreView.getParent() != null) {
                 ((ViewGroup) mLoadMoreView.getParent()).removeView(mLoadMoreView);
             }
-            setLoadMoreView((XXXAdapter) adapter);
+            setLoadMoreView(xxxAdapter);
             if (mScrollListener != null) {
                 removeOnScrollListener(mScrollListener);
             }
@@ -90,8 +105,8 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
     }
 
     private void setLoadMoreView(XXXAdapter adapter) {
-        adapter.removeAllFooterView();
-        adapter.addFooterView(mLoadMoreView);
+        removeAllFooterView();
+        addFooterView(mLoadMoreView);
         setLoadMoreShow(false);
         setFooterSpanSizeLookup(getLayoutManager(), adapter);
     }
@@ -173,43 +188,39 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
 
     @Override
     public void addHeaderView(View v) {
-        if (getAdapter() != null && getAdapter() instanceof HatShoe) {
-            ((HatShoe) getAdapter()).addHeaderView(v);
-        }
+        mLayoutHeader.addView(v);
     }
 
     @Override
     public void addFooterView(View v) {
-        if (getAdapter() != null && getAdapter() instanceof HatShoe) {
-            ((HatShoe) getAdapter()).addFooterView(v);
-        }
+        mLayoutFooter.addView(v);
     }
 
     @Override
     public void removeHeaderView(View v) {
-        if (getAdapter() != null && getAdapter() instanceof HatShoe) {
-            ((HatShoe) getAdapter()).removeHeaderView(v);
+        if (mLayoutHeader != null) {
+            mLayoutHeader.removeView(v);
         }
     }
 
     @Override
     public void removeFooterView(View v) {
-        if (getAdapter() != null && getAdapter() instanceof HatShoe) {
-            ((HatShoe) getAdapter()).removeFooterView(v);
+        if (mLayoutFooter != null) {
+            mLayoutFooter.removeView(v);
         }
     }
 
     @Override
     public void removeAllHeaderView() {
-        if (getAdapter() != null && getAdapter() instanceof HatShoe) {
-            ((HatShoe) getAdapter()).removeAllHeaderView();
+        if (mLayoutHeader != null) {
+            mLayoutHeader.removeAllViews();
         }
     }
 
     @Override
     public void removeAllFooterView() {
-        if (getAdapter() != null && getAdapter() instanceof HatShoe) {
-            ((HatShoe) getAdapter()).removeAllFooterView();
+        if (mLayoutFooter != null) {
+            mLayoutFooter.removeAllViews();
         }
     }
 
@@ -295,6 +306,9 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
      * @return
      */
     private boolean isVertically() {
+        if (layoutManagerType == null) {
+            throw new NullPointerException("Null layoutManager");
+        }
         switch (layoutManagerType) {
             case GRID:
                 return ((GridLayoutManager) getLayoutManager()).getOrientation() ==
@@ -340,6 +354,14 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
             return fistItemV.getTop() < 0;
         }
         return super.canScrollVertically(direction);
+    }
+
+    private ViewGroup createContainer() {
+        LinearLayout container = new LinearLayout(getContext());
+        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        container.setOrientation(LinearLayout.VERTICAL);
+        return container;
     }
 
     public OnLoadMoreListener getOnLoadMoreListener() {
