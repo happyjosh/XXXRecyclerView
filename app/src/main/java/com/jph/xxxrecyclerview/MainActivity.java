@@ -30,10 +30,13 @@ public class MainActivity extends AppCompatActivity {
                 false));
 //        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 //        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        recyclerView.setLoadable(true);
+
         recyclerView.setLoadMoreView(View.inflate(this, R.layout.layout_load_more, null));
+        recyclerView.addFooterView(View.inflate(this, R.layout.header, null));
+
         mMyAdapter = new MyAdapter(generateData(0, 20));
         recyclerView.setAdapter(mMyAdapter);
-        recyclerView.addHeaderView(View.inflate(this, R.layout.header, null));
         recyclerView.setOnLoadMoreListener(new XXXRecyclerView.OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
