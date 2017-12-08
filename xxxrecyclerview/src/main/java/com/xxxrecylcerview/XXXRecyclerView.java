@@ -18,11 +18,14 @@ import android.widget.LinearLayout;
  * Created by jph on 2016/4/21.
  */
 public class XXXRecyclerView extends RecyclerView implements HatShoe {
+
+
     private static final String TAG = "XXXRecyclerView";
 
     private boolean mLoadable = true;
     private boolean mIsLoading = false;
-    private LAYOUT_MANAGER_TYPE layoutManagerType;//LayoutManager类型
+    private @LayoutManagerType
+    int layoutManagerType;//LayoutManager类型
 
     private int mLastTouchY;
     private boolean mTouchThis = false;//是否触摸
@@ -58,13 +61,13 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
     @Override
     public void setLayoutManager(LayoutManager layout) {
         super.setLayoutManager(layout);
-        if (layout != null && layoutManagerType == null) {
+        if (layout != null) {
             if (layout instanceof GridLayoutManager) {
-                layoutManagerType = LAYOUT_MANAGER_TYPE.GRID;
+                layoutManagerType =LayoutManagerType.GRID;
             } else if (layout instanceof LinearLayoutManager) {
-                layoutManagerType = LAYOUT_MANAGER_TYPE.LINEAR;
+                layoutManagerType = LayoutManagerType.LINEAR;
             } else if (layout instanceof StaggeredGridLayoutManager) {
-                layoutManagerType = LAYOUT_MANAGER_TYPE.STAGGERED_GRID;
+                layoutManagerType = LayoutManagerType.STAGGERED_GRID;
             } else {
                 throw new RuntimeException("Unsupported LayoutManager used." +
                         " Valid ones are LinearLayoutManager, " +
@@ -275,13 +278,13 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
         int firstPosition = 0;
 
         switch (layoutManagerType) {
-            case LINEAR:
+            case LayoutManagerType.LINEAR:
                 firstPosition = ((LinearLayoutManager) layoutManager).findFirstVisibleItemPosition();
                 break;
-            case GRID:
+            case LayoutManagerType.GRID:
                 firstPosition = ((GridLayoutManager) layoutManager).findFirstVisibleItemPosition();
                 break;
-            case STAGGERED_GRID:
+            case LayoutManagerType.STAGGERED_GRID:
                 StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) layoutManager;
                 int[] firstPositions = new int[staggeredGridLayoutManager.getSpanCount()];
                 staggeredGridLayoutManager.findFirstVisibleItemPositions(firstPositions);
@@ -306,17 +309,17 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
      * @return
      */
     private boolean isVertically() {
-        if (layoutManagerType == null) {
+        if (layoutManagerType == 0) {
             throw new NullPointerException("Null layoutManager");
         }
         switch (layoutManagerType) {
-            case GRID:
+            case LayoutManagerType.GRID:
                 return ((GridLayoutManager) getLayoutManager()).getOrientation() ==
                         GridLayoutManager.VERTICAL;
-            case LINEAR:
+            case LayoutManagerType.LINEAR:
                 return ((LinearLayoutManager) getLayoutManager()).getOrientation() ==
                         LinearLayoutManager.VERTICAL;
-            case STAGGERED_GRID:
+            case LayoutManagerType.STAGGERED_GRID:
                 return ((StaggeredGridLayoutManager) getLayoutManager()).getOrientation() ==
                         StaggeredGridLayoutManager.VERTICAL;
         }
@@ -400,11 +403,5 @@ public class XXXRecyclerView extends RecyclerView implements HatShoe {
      */
     public interface OnLoadMoreListener {
         void onLoadMore();
-    }
-
-    public enum LAYOUT_MANAGER_TYPE {
-        LINEAR,
-        GRID,
-        STAGGERED_GRID
     }
 }
